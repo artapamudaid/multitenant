@@ -6,6 +6,9 @@ class Tenant_controller extends CI_Controller
     {
         parent::__construct();
 
+        //load models
+        $this->load->model(array('setting_model', 'user_model'));
+
         //ambil username dari uri 1 (pertama)
         $username = $this->uri->segment(1);
 
@@ -23,7 +26,7 @@ class Tenant_controller extends CI_Controller
             //buat koneksi baru untuk akses db tenant
             $db_config = array(
                 'dsn'      => '',
-                'hostname' => $tenant['host'],
+                'hostname' => $tenant['host'] . ':' . $tenant['port'],
                 'username' => $tenant['user'],
                 'password' => $tenant['pass'],
                 'database' => $tenant['db'],
@@ -32,6 +35,11 @@ class Tenant_controller extends CI_Controller
 
             //load database tenant
             $this->load->database($db_config);
+
+            $getLang    = $this->setting_model->get(array('name' => 'SETTING_LANGUAGE'));
+            $val        = $getLang->value;
+
+            $this->sysLang($val);
         } else {
             //jika tenant tidak ditemukan maka error 404
             show_404();
@@ -40,8 +48,8 @@ class Tenant_controller extends CI_Controller
 
     public function index()
     {
-        $data = $this->db->get('users')->result();
+        $data['users'] = $this->user_model->get();
 
-        print_r($data);
+        $this->load->view('users/view', $data);
     }
 }

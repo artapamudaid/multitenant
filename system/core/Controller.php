@@ -127,8 +127,20 @@ class CI_Controller
 	public function tenantConfig($username = null)
 	{
 		$this->load->database('landlord');
-		$tenant = $this->db->query("SELECT c.host, c.user, c.pass, a.db FROM tenants a JOIN clients b ON a.client_id = b.id JOIN servers c ON a.server_id = c.id WHERE a.sub = '$username' AND b.status = '1'")->row_array();
+		$tenant = $this->db->query("SELECT c.host, c.user, c.pass, c.port, a.db FROM tenants a JOIN clients b ON a.client_id = b.id JOIN servers c ON a.server_id = c.id WHERE a.sub = '$username' AND b.status = '1'")->row_array();
 
 		return json_encode($tenant);
+	}
+
+	public function sysLang($val = null)
+	{
+		$default = 'bahasa';
+		if (isset($val)) {
+			$lang = $val;
+		} else {
+			$lang = $default;
+		}
+
+		$this->lang->load('common', $lang);
 	}
 }
