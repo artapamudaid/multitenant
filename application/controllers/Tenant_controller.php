@@ -9,8 +9,9 @@ class Tenant_controller extends CI_Controller
         //load models
         $this->load->model(array('setting_model', 'user_model'));
 
-        //ambil username dari uri 1 (pertama)
-        $username = $this->uri->segment(1);
+        $host = $_SERVER['HTTP_HOST'];
+        $username = explode('.', $host)[0];
+
 
         //cek username
         if ($this->isValidClient($username)) {
