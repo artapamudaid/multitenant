@@ -7,6 +7,18 @@ class Welcome extends CI_Controller
 	{
 		parent::__construct();
 
+		$host = $_SERVER['HTTP_HOST'];
+
+		$checkSubdomain = $this->hasSubdomain($host);
+		$checkSubdomain = json_encode($checkSubdomain);
+
+		$checkSubdomain = json_decode($checkSubdomain, true);
+
+		if ($checkSubdomain['status']) {
+			redirect('manage/tenant');
+			exit;
+		}
+
 		$this->load->model('setting_model');
 
 		$this->load->database('landlord');

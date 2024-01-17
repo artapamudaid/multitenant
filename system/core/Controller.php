@@ -102,8 +102,8 @@ class CI_Controller
 		return self::$instance;
 	}
 
-	//cek username
-	public function isValidClient($username = null)
+	//cek subdomain
+	public function isValidClient($subdomain = null)
 	{
 		//load landloard db
 		$this->load->database('landlord');
@@ -112,7 +112,8 @@ class CI_Controller
 		$status = false;
 
 		//query untuk cek tenant
-		$tenant = $this->db->query("SELECT a.id FROM tenants a JOIN clients b ON a.client_id = b.id WHERE a.sub = '$username' AND b.status = '1'")->num_rows();
+		$tenant = $this->db->query("SELECT a.id FROM tenants a
+		JOIN clients b ON a.client_id = b.id WHERE a.sub = '$subdomain'")->num_rows();
 
 		//jika tenant ada
 		if ($tenant > 0) {
@@ -124,21 +125,37 @@ class CI_Controller
 		return $status;
 	}
 
-	public function tenantConfig($username = null)
+	function hasSubdomain($host)
+	{
+		$hostParts = explode('.', $host);
+
+		if (count($hostParts) > 2) {
+			$data = array('status' => true, 'subdomain' => $hostParts[0]);
+		} else {
+			$data = array('status' => false, 'subdomain' => '');
+		}
+
+		return $data;
+	}
+
+	public function tenantConfig($subdomain = null)
 	{
 		$this->load->database('landlord');
-		$tenant = $this->db->query("SELECT c.host, c.user, c.pass, c.port, a.db FROM tenants a JOIN clients b ON a.client_id = b.id JOIN servers c ON a.server_id = c.id WHERE a.sub = '$username' AND b.status = '1'")->row_array();
+		$tenant = $this->db->query("SELECT c.host, c.user, c.pass, c.port, a.db, b.status
+									FROM tenants a
+									JOIN clients b ON a.client_id = b.id
+									JOIN servers c ON a.server_id = c.id
+									WHERE a.sub = '$subdomain'")->row_array();
 
 		return json_encode($tenant);
 	}
 
 	public function sysLang($val = null)
 	{
-		$default = 'bahasa';
+		$lang = 'bahasa';
+
 		if (isset($val)) {
 			$lang = $val;
-		} else {
-			$lang = $default;
 		}
 
 		$this->lang->load('common', $lang);

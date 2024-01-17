@@ -6,45 +6,59 @@ class Tenant_controller extends CI_Controller
     {
         parent::__construct();
 
+        $host = $_SERVER['HTTP_HOST'];
+
+        $checkSubdomain = $this->hasSubdomain($host);
+        $checkSubdomain = json_encode($checkSubdomain);
+
+        $checkSubdomain = json_decode($checkSubdomain, true);
+
+        if (!$checkSubdomain['status']) {
+            redirect('welcome');
+            exit;
+        }
+
+        $subdomain = $checkSubdomain['subdomain'];
+
+        //cek subdomain
+        if (!$this->isValidClient($subdomain)) {
+            //jika subdomain tidak ada/tidak terdaftar
+            show_404();
+            exit;
+        }
+
+        //ambil data koneksi tenant
+        $tenant = $this->tenantConfig($subdomain);
+        $tenant = json_decode($tenant, true);
+
+        //tutup koneksi landlord
+        $this->db->close();
+
+        if ($tenant['status'] == 0) {
+            echo 'Aplikasi Anda Tidak Aktif';
+            exit;
+        }
+
+        //buat koneksi baru untuk akses db tenant
+        $db_config = array(
+            'dsn'      => '',
+            'hostname' => $tenant['host'] . ':' . $tenant['port'],
+            'username' => $tenant['user'],
+            'password' => $tenant['pass'],
+            'database' => $tenant['db'],
+            'dbdriver' => 'mysqli'
+        );
+
+        //load database tenant
+        $this->load->database($db_config);
+
         //load models
         $this->load->model(array('setting_model', 'user_model'));
 
-        $host = $_SERVER['HTTP_HOST'];
-        $username = explode('.', $host)[0];
+        $getLang    = $this->setting_model->get(array('name' => 'SETTING_LANGUAGE'));
+        $val        = $getLang->value;
 
-
-        //cek username
-        if ($this->isValidClient($username)) {
-            //jika valid
-
-            //ambil data koneksi tenant
-            $tenant = $this->tenantConfig($username);
-            $tenant = json_decode($tenant, true);
-
-            //tutup koneksi landlord
-            $this->db->close();
-
-            //buat koneksi baru untuk akses db tenant
-            $db_config = array(
-                'dsn'      => '',
-                'hostname' => $tenant['host'] . ':' . $tenant['port'],
-                'username' => $tenant['user'],
-                'password' => $tenant['pass'],
-                'database' => $tenant['db'],
-                'dbdriver' => 'mysqli'
-            );
-
-            //load database tenant
-            $this->load->database($db_config);
-
-            $getLang    = $this->setting_model->get(array('name' => 'SETTING_LANGUAGE'));
-            $val        = $getLang->value;
-
-            $this->sysLang($val);
-        } else {
-            //jika tenant tidak ditemukan maka error 404
-            show_404();
-        }
+        $this->sysLang($val);
     }
 
     public function index()
