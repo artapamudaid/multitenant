@@ -15,7 +15,10 @@ class Welcome extends CI_Controller
 		$checkSubdomain = json_decode($checkSubdomain, true);
 
 		if ($checkSubdomain['status']) {
-			redirect('manage/tenant');
+
+			$subdomain = $checkSubdomain['subdomain'];
+			$this->baseUrl = $this->createUrl($subdomain);
+			redirect($this->baseUrl . 'manage/tenant');
 			exit;
 		}
 

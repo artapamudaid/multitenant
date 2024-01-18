@@ -1,5 +1,4 @@
 <?php
-
 class Tenant_controller extends CI_Controller
 {
     public function __construct()
@@ -19,6 +18,8 @@ class Tenant_controller extends CI_Controller
         }
 
         $subdomain = $checkSubdomain['subdomain'];
+
+        $this->baseUrl = $this->createUrl($subdomain);
 
         //cek subdomain
         if (!$this->isValidClient($subdomain)) {
